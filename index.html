@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="logo.png">
+    <title>目录树生成器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <button id="selectFolder" class="primary"><i class="ri-folder-open-line"></i> 选择文件夹</button>
+                <button id="formatComments"><i class="ri-align-right"></i> 格式化注释</button>
+                <button id="exportImage"><i class="ri-image-line"></i> 导出图片</button>
+            </div>
+            <div class="control-group">
+                <button class="button-select">
+                    <i class="ri-list-settings-line"></i>
+                    <span>显示层级: <span class="selected-value">3 级</span></span>
+                    <i class="ri-arrow-down-s-line"></i>
+                    <select id="levelSelect">
+                        <option value="1">1 级</option>
+                        <option value="2">2 级</option>
+                        <option value="3" selected>3 级</option>
+                        <option value="4">4 级</option>
+                        <option value="5">5 级</option>
+                        <option value="-1">显示全部</option>
+                    </select>
+                </button>
+                <button class="button-select">
+                    <i class="ri-menu-2-line"></i>
+                    <span>注释分隔符: <span class="selected-value">#</span></span>
+                    <i class="ri-arrow-down-s-line"></i>
+                    <select id="commentSeparator">
+                        <option value="#">#</option>
+                        <option value="//"> //</option>
+                    </select>
+                </button>
+                <button class="button-select">
+                    <i class="ri-palette-line"></i>
+                    <span>主题: <span class="selected-value">跟随系统</span></span>
+                    <i class="ri-arrow-down-s-line"></i>
+                    <select id="themeSelect">
+                        <option value="system">跟随系统</option>
+                        <option value="light">浅色</option>
+                        <option value="dark">深色</option>
+                    </select>
+                </button>
+                <button class="toggle-button" id="showHiddenBtn">
+                    <i class="ri-eye-off-line show-icon"></i>
+                    <i class="ri-eye-line hide-icon"></i>
+                    <span>隐藏文件</span>
+                </button>
+            </div>
+        </div>
+        <textarea id="treeContainer"></textarea>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/fold/foldcode.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html> 
