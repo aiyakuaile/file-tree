@@ -583,6 +583,10 @@ input[type="checkbox"]:hover:not(:checked) {
     transition: all 0.2s ease;
     margin: 0;
     border-radius: var(--radius-small);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 #confirmExport:hover {
@@ -595,6 +599,37 @@ input[type="checkbox"]:hover:not(:checked) {
 #confirmExport:active {
     transform: translateY(0);
     box-shadow: var(--shadow-small);
+}
+
+/* 加载动画样式 */
+.loading-spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 导出按钮加载状态 */
+#confirmExport.loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+#confirmExport.loading .button-text {
+    opacity: 0.8;
+}
+
+#confirmExport.loading .loading-spinner {
+    display: block;
 }
 
 /* 主题预设样式 */
@@ -646,5 +681,57 @@ input[type="checkbox"]:hover:not(:checked) {
 :root[data-theme="dark"] .modal-content {
     background-color: var(--color-bg-secondary);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 忽略输入框样式 */
+.ignore-input-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+    display: flex;
+    gap: 8px;
+}
+
+#ignorePatterns {
+    flex: 1;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition: all 0.2s;
+}
+
+#ignorePatterns:hover {
+    border-color: var(--color-text-secondary);
+}
+
+#ignorePatterns:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
+}
+
+/* 输入框按钮样式 */
+.input-button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.input-button i {
+    font-size: 16px;
+}
+
+.input-button:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
 }
  

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 window.services = {
-    scanDirectory: (dirPath, showHidden = false) => {
+    scanDirectory: (dirPath, showHidden = false, shouldIgnore = null) => {
         try {
             console.log('开始扫描目录:', dirPath);
             
@@ -12,6 +12,10 @@ window.services = {
                     const name = path.basename(currentPath);
                     
                     if (!showHidden && name.startsWith('.')) {
+                        return null;
+                    }
+                    
+                    if (shouldIgnore && shouldIgnore(name)) {
                         return null;
                     }
                     
@@ -26,6 +30,7 @@ window.services = {
                         
                         const validFiles = files
                             .filter(file => showHidden || !file.startsWith('.'))
+                            .filter(file => !shouldIgnore || !shouldIgnore(file))
                             .sort((a, b) => {
                                 const aPath = path.join(currentPath, a);
                                 const bPath = path.join(currentPath, b);

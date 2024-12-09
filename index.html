@@ -56,6 +56,17 @@
                     <i class="ri-eye-line hide-icon"></i>
                     <span>隐藏文件</span>
                 </button>
+                <div class="ignore-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="ignorePatterns" 
+                        placeholder="输入要忽略的文件/文件夹，用逗号分隔"
+                        title="例如: node_modules,build,dist,*.log"
+                    >
+                    <button id="updateIgnore" class="input-button" title="更新忽略规则">
+                        <i class="ri-refresh-line"></i>
+                    </button>
+                </div>
             </div>
         </div>
         <textarea id="treeContainer"></textarea>
@@ -129,7 +140,10 @@
                                 </select>
                             </div>
                         </div>
-                        <button id="confirmExport" class="primary">导出图片</button>
+                        <button id="confirmExport" class="primary">
+                            <span class="button-text">立即导出</span>
+                            <span class="loading-spinner"></span>
+                        </button>
                     </div>
                 </div>
             </div>

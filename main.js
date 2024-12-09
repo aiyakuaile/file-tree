@@ -155,7 +155,35 @@ document.getElementById('commentSeparator').addEventListener('change', (e) => {
 function scanDirectory(path) {
     console.log('开始扫描目录:', path);
     const showHidden = document.getElementById('showHidden').checked;
-    const data = window.services.scanDirectory(path, showHidden);
+    const ignorePatterns = document.getElementById('ignorePatterns').value
+        .split(',')
+        .map(p => p.trim())
+        .filter(p => p);  // 过滤空字符串
+    
+    console.log('忽略的文件/文件夹:', ignorePatterns);
+    
+    // 创建简单的匹配函数
+    function shouldIgnore(name) {
+        return ignorePatterns.some(pattern => {
+            // 转换通配符为正则表达式
+            const regexPattern = pattern
+                .replace(/\./g, '\\.')  // 转义点号
+                .replace(/\*/g, '.*')   // * 转换为任意字符
+                .replace(/\?/g, '.');   // ? 转换为单个字符
+            
+            const regex = new RegExp(`^${regexPattern}$`);
+            const isMatch = regex.test(name);
+            
+            if (isMatch) {
+                console.log(`文件/文件夹 "${name}" 匹配忽略规则 "${pattern}"`);
+            }
+            
+            return isMatch;
+        });
+    }
+    
+    // 修改扫描函数，添加忽略逻辑
+    const data = window.services.scanDirectory(path, showHidden, shouldIgnore);
     console.log('扫描结果:', data);
     
     if (data) {
@@ -395,7 +423,7 @@ document.getElementById('exportImage').addEventListener('click', () => {
         contentWrapper.style.boxSizing = 'border-box';
         preview.appendChild(contentWrapper);
         
-        // 渲染内容
+        // ���染内容
         lines.forEach(line => {
             if (!line.trim()) return;
             
@@ -508,6 +536,9 @@ document.getElementById('exportImage').addEventListener('click', () => {
         const bgColor = document.getElementById('bgColor').value;
         
         try {
+            // 显示加载状态
+            oldConfirmExport.classList.add('loading');
+            
             await new Promise(resolve => setTimeout(resolve, 100));
             
             const canvas = await html2canvas(preview, {
@@ -547,7 +578,35 @@ document.getElementById('exportImage').addEventListener('click', () => {
         } catch (error) {
             console.error('导出图片失败:', error);
             utools.showNotification('导出图片失败');
+        } finally {
+            // 移除加载状态
+            oldConfirmExport.classList.remove('loading');
         }
     });
+});
+
+// 监听忽略模式的变化
+document.getElementById('updateIgnore').addEventListener('click', () => {
+    if (treeData && treeData.path) {
+        // 添加过渡动画
+        const button = document.getElementById('updateIgnore');
+        button.style.transform = 'rotate(360deg)';
+        button.style.transition = 'transform 0.5s';
+        
+        scanDirectory(treeData.path);
+        
+        // 重置动画
+        setTimeout(() => {
+            button.style.transform = '';
+            button.style.transition = '';
+        }, 500);
+    }
+});
+
+// 添加回车键触发更新
+document.getElementById('ignorePatterns').addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') {
+        document.getElementById('updateIgnore').click();
+    }
 });
   
