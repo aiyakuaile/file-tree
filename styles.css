@@ -14,6 +14,7 @@
     --shadow-medium: 0 3px 6px rgba(140,149,159,0.15);
     --shadow-large: 0 8px 24px rgba(140,149,159,0.2);
     --color-primary-rgb: 26, 127, 55;
+    --color-comment: #8b949e;
 }
 
 :root[data-theme="light"] {
@@ -358,7 +359,7 @@ input[type="checkbox"]:hover:not(:checked) {
     width: fit-content;
     max-width: 1080px;
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 24px;  // 稍微减小字号以适应宽度限制
+    font-size: 24px;  /* 稍微减小字号以适应宽度限制 */
     line-height: 1.5;
     white-space: pre;
     color: var(--color-text);
@@ -393,4 +394,20 @@ input[type="checkbox"]:hover:not(:checked) {
 
 #exportImage i {
     font-size: 16px;
-} 
+}
+
+/* 自定义注释样式 */
+.cm-comment-custom {
+    color: #22863a !important;  /* GitHub 风格的绿色 */
+    font-style: normal !important;
+    font-weight: normal !important;
+    background: none !important;
+}
+
+/* 暗色主题下的注释颜色 */
+:root[data-theme="dark"] .cm-comment-custom {
+    color: #7ee787 !important;  /* GitHub Dark 风格的绿色 */
+    opacity: 0.8 !important;
+    background: none !important;
+}
+ 

@@ -54,21 +54,38 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
 
 // 初始化编辑器
 document.addEventListener('DOMContentLoaded', () => {
+    // 定义自定义模式
+    CodeMirror.defineMode("tree", function() {
+        return {
+            token: function(stream) {
+                const separator = document.getElementById('commentSeparator').value;
+                // 跳过前面的空白字符
+                stream.eatSpace();
+                
+                // 检查是否是注释开始
+                if (separator === '#') {
+                    // 匹配 # 后面的所有内容
+                    if (stream.match(/#.*$/)) {
+                        return "comment-custom";
+                    }
+                } else if (separator === '//') {
+                    // 匹配 // 后面的所有内容
+                    if (stream.match(/\/\/.*$/)) {
+                        return "comment-custom";
+                    }
+                }
+                
+                // 如果不是注释，跳过当前字符
+                stream.next();
+                return null;
+            }
+        };
+    });
+
     editor = CodeMirror.fromTextArea(document.getElementById('treeContainer'), {
-        mode: null,
+        mode: "tree",
         theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'monokai' : 'default',
         lineNumbers: true,
-        lineWrapping: false,
-        foldGutter: true,
-        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-        extraKeys: {
-            'Ctrl-Q': function(cm) {
-                cm.foldCode(cm.getCursor());
-            }
-        },
-        foldOptions: {
-            widget: '...'
-        },
         viewportMargin: Infinity,
         indentUnit: 4,
         tabSize: 4,
@@ -85,9 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
 
     initializeSelectors();
+
+    // 监听分隔符变化，更新语法高亮
+    document.getElementById('commentSeparator').addEventListener('change', () => {
+        editor.setOption('mode', null);  // 先清除模式
+        setTimeout(() => {
+            editor.setOption('mode', 'tree');  // 重新设置模式
+            editor.refresh();  // 刷新编辑器
+        }, 0);
+    });
 });
 
-// ��择文件夹并扫描
+// 选择文件夹并扫描
 document.getElementById('selectFolder').addEventListener('click', () => {
     try {
         const result = utools.showOpenDialog({
@@ -138,11 +164,11 @@ function scanDirectory(path) {
         renderTree(data);
     } else {
         console.error('生成目录树失败');
-        utools.showNotification('生成目录树失败');
+        utools.showNotification('生成目录���失败');
     }
 }
 
-// 添加格式化注释按钮的事件监听
+// 添加格式注释按钮的事件监听
 document.getElementById('formatComments').addEventListener('click', () => {
     formatComments();
 });
@@ -154,61 +180,67 @@ function formatComments() {
 
     const separator = document.getElementById('commentSeparator').value;
     const lines = content.split('\n');
-    let maxLength = 0;
+    let maxContentWidth = 0;
 
-    // 第一遍遍历：找出最长的文件名长度
+    // 第一遍遍历：找出最长的目录部分宽度（不包括注释）
     lines.forEach(line => {
-        if (line.trim()) {
-            const commentIndex = line.indexOf(separator);
-            if (commentIndex !== -1) {
-                const name = line.substring(0, commentIndex).trimEnd();
-                const tabLength = [...name].reduce((acc, char) => {
-                    return acc + (char.match(/[\u4e00-\u9fa5]|[\uff00-\uffff]/) ? 2 : 1);
-                }, 0);
-                maxLength = Math.max(maxLength, tabLength);
-            } else {
-                const tabLength = [...line.trimEnd()].reduce((acc, char) => {
-                    return acc + (char.match(/[\u4e00-\u9fa5]|[\uff00-\uffff]/) ? 2 : 1);
-                }, 0);
-                maxLength = Math.max(maxLength, tabLength);
+        if (line.trim()) {  // 忽略空行
+            // 检查是否是目录树的一部分（包含树形符号）
+            if (line.match(/^([\s]*│)*[\s]*[├└]── /)) {  // 修改正则以更准确地匹配目录树行
+                const commentIndex = line.indexOf(separator);
+                // 获取目录部分（包括缩进和文件名，但不包括注释）
+                const contentPart = commentIndex !== -1 ? 
+                    line.substring(0, commentIndex).trimEnd() : 
+                    line.trimEnd();
+                
+                // 计算这部分内容的显示宽度
+                const contentWidth = getDisplayWidth(contentPart);
+                maxContentWidth = Math.max(maxContentWidth, contentWidth);
             }
         }
     });
 
-    // 第二遍遍历：格式化每一行
+    // 第二���遍历：格式化每一行
     const formattedLines = lines.map(line => {
-        if (!line.trim()) return line;
+        if (!line.trim()) return line;  // 保持空行不变
 
         const commentIndex = line.indexOf(separator);
         if (commentIndex !== -1) {
-            const name = line.substring(0, commentIndex).trimEnd();
+            const contentPart = line.substring(0, commentIndex).trimEnd();
             const comment = line.substring(commentIndex).trim();
-            const currentLength = [...name].reduce((acc, char) => {
-                return acc + (char.match(/[\u4e00-\u9fa5]|[\uff00-\uffff]/) ? 2 : 1);
-            }, 0);
-            const paddingLength = maxLength - currentLength + 2;
-            const padding = ' '.repeat(Math.max(2, paddingLength));
-            return name + padding + comment;
+            const currentWidth = getDisplayWidth(contentPart);
+            
+            // 所有注释都对齐到最大宽度后的固定位置
+            const spacesNeeded = maxContentWidth - currentWidth + 4;  // 固定4个空格的间隔
+            const padding = ' '.repeat(Math.max(1, spacesNeeded));
+            
+            return contentPart + padding + comment;
         }
         return line;
     });
 
     editor.setValue(formattedLines.join('\n'));
-    
-    // 保持折叠状态
-    const lineCount = editor.lineCount();
-    for (let i = 0; i < lineCount; i++) {
-        if (editor.isFoldable(i)) {
-            editor.foldCode(i);
+    utools.showNotification('注释格式化完成');
+}
+
+// 计算字符串显示宽度的辅助函数
+function getDisplayWidth(str) {
+    let width = 0;
+    for (const char of str) {
+        if (char === ' ' || char === '│' || char === '├' || char === '└' || char === '─') {
+            width += 1;  // 空格和树形符号算1个宽度
+        } else if (char.match(/[\u4e00-\u9fa5]|[\uff00-\uffff]/)) {
+            width += 2;  // 中文字符算2个宽度
+        } else {
+            width += 1;  // 其他字符算1个宽度
         }
     }
-
-    utools.showNotification('注释格式化完成');
+    return width;
 }
 
 // 修改 renderTree 函数，移动对齐部分
 function renderTree(data) {
-    console.log('���始渲染树形图:', data);
+    console.log('开始渲染树形图:', data);
     const maxLevel = parseInt(document.getElementById('levelSelect').value);
     const separator = document.getElementById('commentSeparator').value;
     
@@ -247,13 +279,7 @@ function renderTree(data) {
         
         editor.setValue(content);
         
-        // 自动折叠所有可折叠的部分
-        const lineCount = editor.lineCount();
-        for (let i = 0; i < lineCount; i++) {
-            editor.foldCode(i);
-        }
-        
-        console.log('渲染完');
+        console.log('渲染完成');
     } catch (error) {
         console.error('渲染树形图时出错:', error);
         utools.showNotification('渲染树形图失败');
@@ -278,13 +304,13 @@ function updateSelectTrigger(selectId) {
     }
 }
 
-// 初始化选择器显示值
+// 初始化选择器显值
 function initializeSelectors() {
     // 初始化所有选择器的显示值
     ['levelSelect', 'commentSeparator', 'themeSelect'].forEach(id => {
         const select = document.getElementById(id);
         if (select) {
-            // 确保有默认选中值
+            // 确保有默认选中
             if (select.selectedIndex === -1 && select.options.length > 0) {
                 select.selectedIndex = 0;
             }
@@ -328,7 +354,7 @@ document.getElementById('exportImage').addEventListener('click', async () => {
         container.className = 'export-container';
         container.style.maxWidth = '1080px';  // 限制最大宽度
         
-        // 复制编辑器内容
+        // 制编辑器内容
         const content = editor.getValue();
         const lines = content.split('\n');
         
@@ -371,7 +397,7 @@ document.getElementById('exportImage').addEventListener('click', async () => {
         const canvas = await html2canvas(container, {
             backgroundColor: getComputedStyle(document.documentElement)
                 .getPropertyValue('--color-bg'),
-            scale: scale,  // 使用计算出的缩放比例
+            scale: scale,  // 使用算出的缩放比例
             logging: false,
             fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
             useCORS: true,
@@ -380,10 +406,10 @@ document.getElementById('exportImage').addEventListener('click', async () => {
             removeContainer: true
         });
         
-        // 移除���时容器
+        // 移除临时容器
         document.body.removeChild(container);
         
-        // 转换为图片数据，使用 JPEG 格式并设置适中的质量
+        // 转换为图片数据，使用 JPEG 格式并设置适的质量
         const imageData = canvas.toDataURL('image/jpeg', 0.85);
         const binaryString = atob(imageData.split(',')[1]);
         const bytes = new Uint8Array(binaryString.length);
@@ -391,7 +417,7 @@ document.getElementById('exportImage').addEventListener('click', async () => {
             bytes[i] = binaryString.charCodeAt(i);
         }
         
-        // 获取文件夹名称作为默认文件名
+        // 获取文夹名称作为默认文件名
         const folderName = treeData ? window.services.getBasename(treeData.path) : 'directory-tree';
         
         // 弹出保存对话框
@@ -411,4 +437,5 @@ document.getElementById('exportImage').addEventListener('click', async () => {
         console.error('导出图片失败:', error);
         utools.showNotification('导出图片失败');
     }
-}); 
+});
+  
