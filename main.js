@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 
-                // 如果不是注释，跳过当前字符
+                // 如果不是注释，跳过当前字
                 stream.next();
                 return null;
             }
@@ -164,7 +164,7 @@ function scanDirectory(path) {
         renderTree(data);
     } else {
         console.error('生成目录树失败');
-        utools.showNotification('生成目录���失败');
+        utools.showNotification('生成目录树失败');
     }
 }
 
@@ -200,7 +200,7 @@ function formatComments() {
         }
     });
 
-    // 第二���遍历：格式化每一行
+    // 第二遍历：格式化每一行
     const formattedLines = lines.map(line => {
         if (!line.trim()) return line;  // 保持空行不变
 
@@ -230,7 +230,7 @@ function getDisplayWidth(str) {
         if (char === ' ' || char === '│' || char === '├' || char === '└' || char === '─') {
             width += 1;  // 空格和树形符号算1个宽度
         } else if (char.match(/[\u4e00-\u9fa5]|[\uff00-\uffff]/)) {
-            width += 2;  // 中文字符算2个宽度
+            width += 2;  // 中文符算2个宽度
         } else {
             width += 1;  // 其他字符算1个宽度
         }
@@ -341,101 +341,213 @@ showHiddenBtn.addEventListener('click', () => {
     }
 });
 
-// 导出图片功能
-document.getElementById('exportImage').addEventListener('click', async () => {
+// 导出图功能
+document.getElementById('exportImage').addEventListener('click', () => {
     if (!editor.getValue().trim()) {
         utools.showNotification('没有可导出的内容');
         return;
     }
 
-    try {
-        // 创建临时容器
-        const container = document.createElement('div');
-        container.className = 'export-container';
-        container.style.maxWidth = '1080px';  // 限制最大宽度
+    // 显示导出设置弹窗
+    const modal = document.getElementById('exportModal');
+    const preview = document.getElementById('exportPreview');
+    modal.classList.add('show');
+
+    // 清除之前的事件监听器
+    const confirmExport = document.getElementById('confirmExport');
+    const closeBtn = document.querySelector('.close-btn');
+    const oldConfirmExport = confirmExport.cloneNode(true);
+    const oldCloseBtn = closeBtn.cloneNode(true);
+    confirmExport.parentNode.replaceChild(oldConfirmExport, confirmExport);
+    closeBtn.parentNode.replaceChild(oldCloseBtn, closeBtn);
+
+    // 预览示例内容
+    const PREVIEW_EXAMPLE = `project
+    ├── src
+    │   ├── components  # 组件目录
+    │   ├── utils      # 工具函数
+    │   └── main.js    # 入口文件
+    └── docs           # 文档目录
+        └── guide.md   # 使用指南`;
+
+    // 更新预览
+    function updatePreview() {
+        const bgColor = document.getElementById('bgColor').value;
+        const textColor = document.getElementById('textColor').value;
+        const commentColor = document.getElementById('commentColor').value;
         
-        // 制编辑器内容
-        const content = editor.getValue();
-        const lines = content.split('\n');
+        preview.style.background = bgColor;
+        preview.style.color = textColor;
         
-        // 创建每一行
+        // 重置预览容器
+        preview.innerHTML = '';
+        
+        // 使用编辑器中的实际内容
+        const lines = editor.getValue().split('\n');
+        const separator = document.getElementById('commentSeparator').value;
+        
+        // 创建内容包装器
+        const contentWrapper = document.createElement('div');
+        contentWrapper.style.display = 'block';
+        contentWrapper.style.whiteSpace = 'pre';
+        contentWrapper.style.textAlign = 'left';
+        contentWrapper.style.padding = '15px';
+        contentWrapper.style.boxSizing = 'border-box';
+        preview.appendChild(contentWrapper);
+        
+        // 渲染内容
         lines.forEach(line => {
             if (!line.trim()) return;
             
             const lineDiv = document.createElement('div');
             lineDiv.className = 'export-line';
             
-            // 处理缩进和树形符号
-            const indentMatch = line.match(/^([ │├└──]+)/);
-            if (indentMatch) {
-                const [fullIndent] = indentMatch;
-                const textContent = line.substring(fullIndent.length);
-                
-                const indentSpan = document.createElement('span');
-                indentSpan.className = 'export-indent';
-                indentSpan.textContent = fullIndent;
-                lineDiv.appendChild(indentSpan);
-                
-                const textSpan = document.createElement('span');
-                textSpan.className = 'export-text';
-                textSpan.textContent = textContent;
-                lineDiv.appendChild(textSpan);
+            const parts = line.split(new RegExp(`(${separator}.*$)`));
+            
+            if (parts.length > 1) {
+                lineDiv.innerHTML = parts[0] + 
+                    `<span style="color: ${commentColor}">${parts[1]}</span>`;
             } else {
                 lineDiv.textContent = line;
             }
             
-            container.appendChild(lineDiv);
+            contentWrapper.appendChild(lineDiv);
         });
-        
-        document.body.appendChild(container);
-
-        // 获取容器实际尺寸
-        const rect = container.getBoundingClientRect();
-        const scale = Math.min(1080 / rect.width, 1) * window.devicePixelRatio;
-        
-        // 配置 html2canvas
-        const canvas = await html2canvas(container, {
-            backgroundColor: getComputedStyle(document.documentElement)
-                .getPropertyValue('--color-bg'),
-            scale: scale,  // 使用算出的缩放比例
-            logging: false,
-            fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-            useCORS: true,
-            allowTaint: true,
-            letterRendering: true,
-            removeContainer: true
-        });
-        
-        // 移除临时容器
-        document.body.removeChild(container);
-        
-        // 转换为图片数据，使用 JPEG 格式并设置适的质量
-        const imageData = canvas.toDataURL('image/jpeg', 0.85);
-        const binaryString = atob(imageData.split(',')[1]);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        
-        // 获取文夹名称作为默认文件名
-        const folderName = treeData ? window.services.getBasename(treeData.path) : 'directory-tree';
-        
-        // 弹出保存对话框
-        const result = utools.showSaveDialog({
-            title: '保存目录树图片',
-            defaultPath: `${folderName}.jpg`,
-            filters: [
-                { name: 'JPEG 图片', extensions: ['jpg'] }
-            ]
-        });
-        
-        if (result) {
-            window.services.saveFile(result, bytes);
-            utools.showNotification('图片已保存');
-        }
-    } catch (error) {
-        console.error('导出图片失败:', error);
-        utools.showNotification('导出图片失败');
     }
+
+    // 初始预览
+    updatePreview();
+
+    // 监听窗口大小变化，重新计算预览
+    const resizeObserver = new ResizeObserver(() => {
+        if (modal.classList.contains('show')) {
+            updatePreview();
+        }
+    });
+    resizeObserver.observe(preview);
+
+    // 预设主题配置
+    const themes = {
+        'github-light': {
+            bg: '#ffffff',
+            text: '#1F2328',
+            comment: '#22863a'
+        },
+        'github-dark': {
+            bg: '#0d1117',
+            text: '#c9d1d9',
+            comment: '#7ee787'
+        },
+        'monokai': {
+            bg: '#272822',
+            text: '#f8f8f2',
+            comment: '#a6e22e'
+        },
+        'dracula': {
+            bg: '#282a36',
+            text: '#f8f8f2',
+            comment: '#50fa7b'
+        },
+        'nord': {
+            bg: '#2e3440',
+            text: '#d8dee9',
+            comment: '#a3be8c'
+        }
+    };
+
+    // 监听主题选择
+    document.querySelectorAll('.theme-item').forEach(item => {
+        item.addEventListener('click', () => {
+            // 移除其他主题的激活状态
+            document.querySelectorAll('.theme-item').forEach(i => i.classList.remove('active'));
+            // 激活当前主题
+            item.classList.add('active');
+
+            // 获取颜色设置组
+            const colorSettings = document.querySelectorAll('.setting-group input[type="color"]');
+            const isColorful = item.dataset.theme === 'colorful';
+            
+            // 如果是炫彩主题，禁用颜色选择
+            colorSettings.forEach(input => {
+                input.disabled = isColorful;
+                input.parentElement.style.opacity = isColorful ? '0.5' : '1';
+                input.parentElement.style.pointerEvents = isColorful ? 'none' : 'auto';
+            });
+
+            // 使用主题颜色
+            const theme = themes[item.dataset.theme];
+            document.getElementById('bgColor').value = theme.bg;
+            document.getElementById('textColor').value = theme.text;
+            document.getElementById('commentColor').value = theme.comment;
+
+            // 更新预览
+            updatePreview();
+        });
+    });
+
+    // 监听颜色变化
+    ['bgColor', 'textColor', 'commentColor'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            // 只在非炫彩主题时取消主题选择
+            const isColorful = document.querySelector('.theme-item[data-theme="colorful"]').classList.contains('active');
+            if (!isColorful) {
+                document.querySelectorAll('.theme-item').forEach(i => i.classList.remove('active'));
+            }
+            updatePreview();
+        });
+    });
+
+    // 关闭弹窗
+    oldCloseBtn.addEventListener('click', () => {
+        modal.classList.remove('show');
+    });
+
+    // 确认导出
+    oldConfirmExport.addEventListener('click', async () => {
+        const scale = document.getElementById('exportScale').value;
+        const bgColor = document.getElementById('bgColor').value;
+        
+        try {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            const canvas = await html2canvas(preview, {
+                backgroundColor: bgColor,
+                scale: scale * window.devicePixelRatio,
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                width: preview.scrollWidth,
+                height: preview.scrollHeight
+            });
+            
+            const imageData = canvas.toDataURL('image/png', 1.0);
+            const binaryString = atob(imageData.split(',')[1]);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            const folderName = treeData ? 
+                window.services.getBasename(treeData.path) : 
+                'directory-tree';
+            
+            const result = utools.showSaveDialog({
+                title: '保存目录树图片',
+                defaultPath: `${folderName}@${scale}x.png`,
+                filters: [
+                    { name: 'PNG 图片', extensions: ['png'] }
+                ]
+            });
+            
+            if (result) {
+                window.services.saveFile(result, bytes);
+                modal.classList.remove('show');
+                utools.showNotification('图片已保存');
+            }
+        } catch (error) {
+            console.error('导出图片失败:', error);
+            utools.showNotification('导出图片失败');
+        }
+    });
 });
   

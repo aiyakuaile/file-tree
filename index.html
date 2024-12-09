@@ -59,6 +59,81 @@
             </div>
         </div>
         <textarea id="treeContainer"></textarea>
+        <!-- 导出设置弹窗 -->
+        <div id="exportModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>导出设置</h3>
+                    <button class="close-btn"><i class="ri-close-line"></i></button>
+                </div>
+                <div class="modal-body">
+                    <div class="export-preview">
+                        <div id="exportPreview" class="preview-container"></div>
+                    </div>
+                    <div class="export-settings">
+                        <div class="settings-scroll-area">
+                            <!-- 主题选择部分 -->
+                            <div class="setting-group">
+                                <label>预设主题</label>
+                                <div class="theme-list">
+                                    <button class="theme-item" data-theme="github-light">
+                                        <span class="theme-preview" style="background: #ffffff; color: #1F2328">
+                                            <span class="comment" style="color: #22863a">Aa</span>
+                                        </span>
+                                    </button>
+                                    <button class="theme-item" data-theme="github-dark">
+                                        <span class="theme-preview" style="background: #0d1117; color: #c9d1d9">
+                                            <span class="comment" style="color: #7ee787">Aa</span>
+                                        </span>
+                                    </button>
+                                    <button class="theme-item" data-theme="monokai">
+                                        <span class="theme-preview" style="background: #272822; color: #f8f8f2">
+                                            <span class="comment" style="color: #a6e22e">Aa</span>
+                                        </span>
+                                    </button>
+                                    <button class="theme-item" data-theme="dracula">
+                                        <span class="theme-preview" style="background: #282a36; color: #f8f8f2">
+                                            <span class="comment" style="color: #50fa7b">Aa</span>
+                                        </span>
+                                    </button>
+                                    <button class="theme-item" data-theme="nord">
+                                        <span class="theme-preview" style="background: #2e3440; color: #d8dee9">
+                                            <span class="comment" style="color: #a3be8c">Aa</span>
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- 自定义颜色部分 -->
+                            <div class="setting-group">
+                                <label>自定义颜色</label>
+                                <div class="setting-group">
+                                    <label>背景颜色</label>
+                                    <input type="color" id="bgColor" value="#ffffff">
+                                </div>
+                                <div class="setting-group">
+                                    <label>文字颜色</label>
+                                    <input type="color" id="textColor" value="#1F2328">
+                                </div>
+                                <div class="setting-group">
+                                    <label>注释颜色</label>
+                                    <input type="color" id="commentColor" value="#22863a">
+                                </div>
+                            </div>
+                            <!-- 缩放比例部分 -->
+                            <div class="setting-group">
+                                <label>缩放比例</label>
+                                <select id="exportScale">
+                                    <option value="1">1x</option>
+                                    <option value="2">2x</option>
+                                    <option value="3">3x</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="confirmExport" class="primary">导出图片</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
