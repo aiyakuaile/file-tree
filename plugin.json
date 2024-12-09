@@ -9,9 +9,9 @@
   "logo": "logo.png",
   "features": [
     {
-      "code": "directory-tree",
-      "explain": "生成目录树",
-      "cmds": ["目录树", "树形图", "directory tree"]
+      "code": "file-tree",
+      "explain": "生成文件树",
+      "cmds": ["tree","文件树", "目录树", "树形图", "file tree"]
     }
   ]
 } 
