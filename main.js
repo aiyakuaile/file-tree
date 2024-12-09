@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSelectors();
 });
 
-// ��件夹并扫描
+// ��择文件夹并扫描
 document.getElementById('selectFolder').addEventListener('click', () => {
     try {
         const result = utools.showOpenDialog({
@@ -208,7 +208,7 @@ function formatComments() {
 
 // 修改 renderTree 函数，移动对齐部分
 function renderTree(data) {
-    console.log('始渲树形图:', data);
+    console.log('���始渲染树形图:', data);
     const maxLevel = parseInt(document.getElementById('levelSelect').value);
     const separator = document.getElementById('commentSeparator').value;
     
@@ -219,19 +219,18 @@ function renderTree(data) {
         
         // 添加当前节点
         const nodePrefix = prefix + (isLast ? '└── ' : '├── ');
-        result += nodePrefix + node.name + (node.comment ? ` ${separator} ` + node.comment : '') + '\n';
+        const hasChildren = node.children && node.children.length > 0;
+        const atMaxLevel = maxLevel !== -1 && level >= maxLevel;
+        const suffix = hasChildren && atMaxLevel ? '/' : '';
+        result += nodePrefix + node.name + suffix + (node.comment ? ` ${separator} ` + node.comment : '') + '\n';
         
-        // 处理子节点，如果未达到最大级
+        // 处理子节点，如果未达到最大层级
         if (node.children && node.children.length > 0 && (maxLevel === -1 || level < maxLevel)) {
             const childPrefix = prefix + (isLast ? '    ' : '│   ');
             node.children.forEach((child, index) => {
                 const isLastChild = index === node.children.length - 1;
                 result += renderNode(child, childPrefix, isLastChild, level + 1);
             });
-        } else if (node.children && node.children.length > 0) {
-            // 如果还有子节点但达到了最大层级，显示省略号
-            const childPrefix = prefix + (isLast ? '    ' : '│   ');
-            result += childPrefix + '...\n';
         }
         
         return result;
@@ -381,7 +380,7 @@ document.getElementById('exportImage').addEventListener('click', async () => {
             removeContainer: true
         });
         
-        // 移除临时容器
+        // 移除���时容器
         document.body.removeChild(container);
         
         // 转换为图片数据，使用 JPEG 格式并设置适中的质量
