@@ -5,6 +5,14 @@ let editor = null;
 const THEME_KEY = 'directory-tree-theme';
 const themeSelect = document.getElementById('themeSelect');
 
+
+utools.onPluginEnter(({ code, type, payload, option }) => {
+    if(type === 'files'){
+      scanDirectory(payload[0].path);
+    }
+});
+
+
 // 初始化主题
 function initTheme() {
     // 从 dbStorage 获取主题设置
@@ -54,6 +62,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
 
 // 初始化编辑器
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded::::::::::');
     // 定义自定义模式
     CodeMirror.defineMode("tree", function() {
         return {

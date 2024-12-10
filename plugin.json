@@ -1,7 +1,7 @@
 {
-  "pluginName": "文件树生成器",
+  "pluginName": "目录树生成器",
   "description": "生成文件夹的树形结构图，支持添加注释并导出为图片",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "author": "aiyakuaile",
   "homepage": "https://github.com/aiyakuaile/file-tree",
   "main": "index.html",
@@ -10,8 +10,14 @@
   "features": [
     {
       "code": "file-tree",
-      "explain": "生成文件树",
-      "cmds": ["tree","文件树", "目录树", "树形图", "file tree"]
+      "explain": "生成目录树",
+      "cmds": ["tree","目录树", "树形图", "file tree",{
+        "type": "files",
+        "label": "生成目录树",
+        "fileType": "directory",
+        "maxLength": 1,
+        "minLength": 1
+      }]
     }
   ]
 } 
