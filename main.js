@@ -318,8 +318,7 @@ function renderTree(data) {
         
         console.log('渲染完成');
     } catch (error) {
-        console.error('渲染树形图时出错:', error);
-        utools.showNotification('渲染树形图失败');
+        editor.setValue('// 渲染树形图时出错:' + error);
     }
 }
 
