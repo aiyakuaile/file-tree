@@ -355,24 +355,9 @@ function initializeSelectors() {
     });
 }
 
-// 修改显示隐藏文件的逻辑
-const showHiddenBtn = document.getElementById('showHiddenBtn');
-const showHiddenCheckbox = document.createElement('input');
-showHiddenCheckbox.type = 'checkbox';
-showHiddenCheckbox.id = 'showHidden';
-showHiddenCheckbox.style.display = 'none';
-document.body.appendChild(showHiddenCheckbox);
-
-// 修改事件监听器，确保正确处理显示隐藏文件
-showHiddenBtn.addEventListener('click', () => {
-    showHiddenCheckbox.checked = !showHiddenCheckbox.checked;
-    showHiddenBtn.classList.toggle('active');
+// 监听显示隐藏文件的复选框
+document.getElementById('showHidden').addEventListener('change', () => {
     if (treeData && treeData.path) {
-        // 添加过渡动画类
-        showHiddenBtn.classList.add('transitioning');
-        setTimeout(() => {
-            showHiddenBtn.classList.remove('transitioning');
-        }, 200);
         scanDirectory(treeData.path);
     }
 });
@@ -431,7 +416,7 @@ document.getElementById('exportImage').addEventListener('click', () => {
         contentWrapper.style.boxSizing = 'border-box';
         preview.appendChild(contentWrapper);
         
-        // ���染内容
+        // 渲染内容
         lines.forEach(line => {
             if (!line.trim()) return;
             
@@ -598,15 +583,13 @@ document.getElementById('updateIgnore').addEventListener('click', () => {
     if (treeData && treeData.path) {
         // 添加过渡动画
         const button = document.getElementById('updateIgnore');
-        button.style.transform = 'rotate(360deg)';
-        button.style.transition = 'transform 0.5s';
+        button.classList.add('rotating');
         
         scanDirectory(treeData.path);
         
         // 重置动画
         setTimeout(() => {
-            button.style.transform = '';
-            button.style.transition = '';
+            button.classList.remove('rotating');
         }, 500);
     }
 });
